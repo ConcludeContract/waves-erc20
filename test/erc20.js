@@ -52,4 +52,26 @@ describe('ERC20', () => {
         await broadcast(tx)
         await waitForTx(tx.id)
     })
+
+    it('should correct transfer execution', async () => {
+        const tx = invokeScript({
+            dApp: address(accounts.token),
+            call: {
+                function: "transfer",
+                args: [{
+                    type: "string",
+                    value: address(accounts.sender)
+                }, {
+                    type: "string",
+                    value: address(accounts.recipient)
+                }, {
+                    type: "integer",
+                    value: 10 * wvs
+                }]
+            }
+        }, accounts.sender);
+
+        await broadcast(tx)
+        await waitForTx(tx.id)
+    })
 })
