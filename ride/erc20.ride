@@ -3,25 +3,38 @@
 {-# SCRIPT_TYPE ACCOUNT #-}
 
 let balanceKey = "_b"
+let allowanceKey = "_a"
 let totalSupply = "totalSupply"
+
+func getBalance(account: String) = {
+  let key = account + balanceKey
+  match getInteger(this, key) {
+    case a:Int => a
+    case _ => 0
+  }
+}
+
+func getAllowance(sender: String, recipient: String) = {
+  let key = sender + "_" + recipient + allowanceKey
+  match getInteger(this, key) {
+    case a:Int => a
+    case _ => 0
+  }
+}
+
+func getTotalSupply() = match getInteger(this, totalSupply) {
+  case a:Int => a
+  case _ => 0
+}
 
 @Callable(i)
 func mint(account: String, amount: Int) = {
   if (amount <= 0) then throw("Amount must be greater than zero")
   else {
-    let key = account + balanceKey
-    let currentAmount = match getInteger(this, key) {
-      case a:Int => a
-      case _ => 0
-    }
-
-    let currentTotalSupply = match getInteger(this, totalSupply) {
-      case a:Int => a
-      case _ => 0
-    }
-
+    let currentAmount = getBalance(account)
+    let currentTotalSupply = getTotalSupply()
     [
-      IntegerEntry(key, currentAmount + amount),
+      IntegerEntry(account + balanceKey, currentAmount + amount),
       IntegerEntry(totalSupply, currentTotalSupply + amount)
     ]
   }
@@ -31,20 +44,11 @@ func mint(account: String, amount: Int) = {
 func burn(account: String, amount: Int) = {
   if (amount <= 0) then throw("Amount must be greater than zero")
   else {
-    let key = account + balanceKey
-    let currentAmount = match getInteger(this, key) {
-      case a:Int => a
-      case _ => 0
-    }
-
-    let currentTotalSupply = match getInteger(this, totalSupply) {
-      case a:Int => a
-      case _ => 0
-    }
-
-    if (currentTotalSupply >= amount && currentAmount >= amount) then  {
+    let currentAmount = getBalance(account)
+    let currentTotalSupply = getTotalSupply()
+    if (currentAmount >= amount && currentTotalSupply >= amount) then  {
       [
-        IntegerEntry(key, currentAmount - amount),
+        IntegerEntry(account + balanceKey, currentAmount - amount),
         IntegerEntry(totalSupply, currentTotalSupply - amount)
       ]
     } else throw("Insufficient funds")
@@ -52,28 +56,48 @@ func burn(account: String, amount: Int) = {
 }
 
 @Callable(i)
-func transfer(sender: String, recipient: String, amount: Int) = {
+func approve(recipient: String, amount: Int) = {
+  let caller = addressFromPublicKey(i.callerPublicKey).toString()
   if (amount <= 0) then throw("Amount must be greater than zero")
   else {
-    let keySender = sender + balanceKey
-    let currentAmountSender = match getInteger(this, keySender) {
-      case a:Int => a
-      case _ => 0
-    }
+    let currentAmount = getBalance(caller)
+    if (currentAmount >= amount)
+      then [IntegerEntry(caller + "_" + recipient + allowanceKey, amount)]
+      else throw("Insufficient funds")
+  }
+}
 
-    let keyRecipient = recipient + balanceKey
-    let currentAmountRecipient = match getInteger(this, keyRecipient) {
-      case a:Int => a
-      case _ => 0
-    }
-
+@Callable(i)
+func transfer(recipient: String, amount: Int) = {
+  let sender = addressFromPublicKey(i.callerPublicKey).toString()
+  if (amount <= 0) then throw("Amount must be greater than zero")
+  else {
+    let currentAmountSender = getBalance(sender)
+    let currentAmountRecipient = getBalance(recipient)
     if (currentAmountSender >= amount) then {
       [
-        IntegerEntry(keySender, currentAmountSender - amount),
-        IntegerEntry(keyRecipient, currentAmountRecipient + amount)
+        IntegerEntry(sender + balanceKey, currentAmountSender - amount),
+        IntegerEntry(recipient + balanceKey, currentAmountRecipient + amount)
       ]
     } else throw("Insufficient funds")
   }
+}
+
+@Callable(i)
+func transferFrom(sender: String, recipient: String, amount: Int) = {
+  let currentAllowance = getAllowance(sender, recipient)
+  if (currentAllowance >= amount) then {
+    if (amount <= 0) then throw("Amount must be greater than zero")
+    else {
+      let currentAmountSender = getBalance(sender)
+      let currentAmountRecipient = getBalance(recipient)
+      [
+        IntegerEntry(sender + balanceKey, currentAmountSender - amount),
+        IntegerEntry(recipient + balanceKey, currentAmountRecipient + amount),
+        IntegerEntry(sender + "_" + recipient + allowanceKey, currentAllowance - amount)
+      ]
+    }
+  } else throw("Insufficient funds")
 }
 
 @Verifier(tx)

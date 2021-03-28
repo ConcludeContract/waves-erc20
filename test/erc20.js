@@ -1,4 +1,5 @@
 const wvs = 1e8
+
 describe('ERC20', () => {
     before(async() => {
         await setupAccounts({
@@ -60,6 +61,42 @@ describe('ERC20', () => {
                 function: "transfer",
                 args: [{
                     type: "string",
+                    value: address(accounts.recipient)
+                }, {
+                    type: "integer",
+                    value: 10 * wvs
+                }]
+            }
+        }, accounts.sender);
+
+        await broadcast(tx)
+        await waitForTx(tx.id)
+    })
+
+    it('should correct transferFrom execution', async () => {
+        const approve = invokeScript({
+            dApp: address(accounts.token),
+            call: {
+                function: "approve",
+                args: [{
+                    type: "string",
+                    value: address(accounts.recipient)
+                }, {
+                    type: "integer",
+                    value: 10 * wvs
+                }]
+            }
+        }, accounts.sender);
+
+        await broadcast(approve)
+        await waitForTx(approve.id)
+
+        const transferFrom = invokeScript({
+            dApp: address(accounts.token),
+            call: {
+                function: "transferFrom",
+                args: [{
+                    type: "string",
                     value: address(accounts.sender)
                 }, {
                     type: "string",
@@ -71,7 +108,7 @@ describe('ERC20', () => {
             }
         }, accounts.sender);
 
-        await broadcast(tx)
-        await waitForTx(tx.id)
+        await broadcast(transferFrom)
+        await waitForTx(transferFrom.id)
     })
 })
