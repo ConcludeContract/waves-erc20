@@ -27,6 +27,7 @@ func getTotalSupply() = match getInteger(this, totalSupply) {
   case _ => 0
 }
 
+# You need to explicitly check who can mint tokens
 @Callable(i)
 func mint(account: String, amount: Int) = {
   if (amount <= 0) then throw("Amount must be greater than zero")
@@ -40,6 +41,7 @@ func mint(account: String, amount: Int) = {
   }
 }
 
+# You need to explicitly check who can burn tokens
 @Callable(i)
 func burn(account: String, amount: Int) = {
   if (amount <= 0) then throw("Amount must be greater than zero")
