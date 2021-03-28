@@ -1,0 +1,61 @@
+{-# STDLIB_VERSION 4 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let balanceKey = "_b"
+let totalSupply = "totalSupply"
+
+@Callable(i)
+func mint(account: String, amount: Int) = {
+  if (amount <= 0) then throw("Amount must be greater than zero")
+  else {
+    let key = account + balanceKey
+    let currentAmount = match getInteger(this, key) {
+      case a:Int => a
+      case _ => 0
+    }
+
+    let currentTotalSupply = match getInteger(this, totalSupply) {
+      case a:Int => a
+      case _ => 0
+    }
+
+    [
+      IntegerEntry(key, currentAmount + amount),
+      IntegerEntry(totalSupply, currentTotalSupply + amount)
+    ]
+  }
+}
+
+@Callable(i)
+func burn(account: String, amount: Int) = {
+  if (amount <= 0) then throw("Amount must be greater than zero")
+  else {
+    let key = account + balanceKey
+    let currentAmount = match getInteger(this, key) {
+      case a:Int => a
+      case _ => 0
+    }
+
+    let currentTotalSupply = match getInteger(this, totalSupply) {
+      case a:Int => a
+      case _ => 0
+    }
+    
+    if (currentTotalSupply >= amount && currentAmount >= amount) then  {
+      [
+        IntegerEntry(key, currentAmount - amount),
+        IntegerEntry(totalSupply, currentTotalSupply - amount)
+      ]
+    } else throw("Insufficient funds")
+  }
+}
+
+@Verifier(tx)
+func verify() = {
+  match(tx) {
+    case _:DataTransaction => false
+    case _:SetScriptTransaction => false
+    case _ => sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)
+  }
+}
