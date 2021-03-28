@@ -1,4 +1,4 @@
-const wvs = 1e8 
+const wvs = 1e8
 describe('ERC20', () => {
     before(async() => {
         await setupAccounts({
