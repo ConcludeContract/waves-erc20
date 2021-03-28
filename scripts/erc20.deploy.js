@@ -1,4 +1,4 @@
-// Wallet.ride deploy script. To run execute `surfboard run path/to/script`
+// ERC20.ride deploy script. To run execute `surfboard run path/to/script`
 
 // wrap out script with async function to use fancy async/await syntax
 (async () => {
