@@ -13,7 +13,6 @@ describe('ERC20', () => {
         const dAppTx = setScript({script: compiledDapp}, accounts.token)
         await broadcast(dAppTx)
         await waitForTx(dAppTx.id)
-        console.log('Scrips were deployed')
     })
 
     it('should correct mint execution', async () => {
