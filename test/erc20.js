@@ -111,4 +111,9 @@ describe('ERC20', () => {
         await broadcast(transferFrom)
         await waitForTx(transferFrom.id)
     })
+
+    it('should reject setScript', async () => {
+        const tx = setScript({script: null}, accounts.token)
+        await expect(broadcast(tx)).rejectedWith()
+    })
 })
