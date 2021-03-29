@@ -48,7 +48,7 @@ func burn(account: String, amount: Int) = {
   else {
     let currentAmount = getBalance(account)
     let currentTotalSupply = getTotalSupply()
-    if (currentAmount >= amount && currentTotalSupply >= amount) then  {
+    if (currentAmount >= amount && currentTotalSupply >= amount) then {
       [
         IntegerEntry(account + balanceKey, currentAmount - amount),
         IntegerEntry(totalSupply, currentTotalSupply - amount)
