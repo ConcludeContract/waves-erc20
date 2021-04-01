@@ -2,6 +2,8 @@
 {-# CONTENT_TYPE DAPP #-}
 {-# SCRIPT_TYPE ACCOUNT #-}
 
+# Implementation of the ERC20 token
+
 let balanceKey = "_b"
 let allowanceKey = "_a"
 let totalSupply = "totalSupply"
